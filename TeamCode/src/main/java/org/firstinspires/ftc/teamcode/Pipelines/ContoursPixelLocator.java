@@ -44,14 +44,20 @@ public class ContoursPixelLocator extends OpenCvPipeline {
 
     //imgs
     Mat clrConvertedMat = new Mat(); //mat after color conversion
-    Mat thresholdMat = new Mat(); //mask -- y pixels are part of thing or n they are not
-    Mat morphedThreshold = new Mat();  //denoise
+    Mat thresholdMat1 = new Mat(); //mask -- y pixels are part of thing or n they are not
+    Mat thresholdMat2 = new Mat();
+    Mat morphedThreshold1 = new Mat();  //denoise
+    Mat morphedThreshold2 = new Mat();
     Mat contoursOnPlainImageMat = new Mat(); //copy of original image to vandalize with contours
 
-
+    //Boolean for team (Red = T, Blue = F)
+    public Boolean teamColor = true;
     //upper and lower Scalar values for changing the range for the mask
-    public Scalar lower = new Scalar(130,80,85);
-    public Scalar upper = new Scalar(255,255,255);
+    public Scalar lower1 = new Scalar(130,80,85);
+    public Scalar upper1 = new Scalar(255,255,255);
+    public Scalar lower2 = new Scalar(130,80,85);
+    public Scalar upper2 = new Scalar(255,255,255);
+
 
     //sizes to adjust for the erosion and dilation of the mask
     public int size = 3;
@@ -65,6 +71,7 @@ public class ContoursPixelLocator extends OpenCvPipeline {
     Point center2 = new Point(0, 0);
     @Override
     public Mat processFrame(Mat input) {
+        teamColor = true; //reinit teamColor default Red
         // Executed every time a new frame is dispatched
         //Array to hold the contours
         ArrayList<MatOfPoint> contoursList = new ArrayList<>();
@@ -76,16 +83,22 @@ public class ContoursPixelLocator extends OpenCvPipeline {
         Imgproc.cvtColor(input, clrConvertedMat, Imgproc.COLOR_RGB2HSV);
         //input.copyTo(grayMat);
         //Make a mask using a range.  Includes only the values within that range
-        Core.inRange(clrConvertedMat,lower,upper,thresholdMat);
-
+        Core.inRange(clrConvertedMat,lower1,upper1,thresholdMat1);
+        Core.inRange(clrConvertedMat,lower2,upper2,thresholdMat2);
         //erode the image - reducing the noisy pixels from the mask
         //by taking the lowest value in a 3x3 box (erodeElement)
-        Imgproc.erode(thresholdMat, morphedThreshold, erodeElement);
-        Imgproc.erode(morphedThreshold, morphedThreshold, erodeElement);
+        Imgproc.erode(thresholdMat1, morphedThreshold1, erodeElement);
+        Imgproc.erode(morphedThreshold1, morphedThreshold1, erodeElement);
+        //For Second Object
+        Imgproc.erode(thresholdMat2, morphedThreshold2, erodeElement);
+        Imgproc.erode(morphedThreshold2, morphedThreshold2, erodeElement);
         //expands the edges of the mask out again (needed because erosion reduces both noise and signal
         //and this boosts the signal of the edges)
-        Imgproc.dilate(morphedThreshold, morphedThreshold, dilateElement);
-        Imgproc.dilate(morphedThreshold, morphedThreshold, dilateElement);
+        Imgproc.dilate(morphedThreshold1, morphedThreshold1, dilateElement);
+        Imgproc.dilate(morphedThreshold1, morphedThreshold1, dilateElement);
+        //For Second Object
+        Imgproc.dilate(morphedThreshold2, morphedThreshold2, dilateElement);
+        Imgproc.dilate(morphedThreshold2, morphedThreshold2, dilateElement);
         //use function to find contours of each object and put them into contoursList.
         //find contours on the mask of all of the edges of the same value that make a closed shape.
         //These contours are points indicated on an image of their own, stored in contoursList.
@@ -94,7 +107,12 @@ public class ContoursPixelLocator extends OpenCvPipeline {
 
         //                  Mask Image        ListToStore  Optional   Mode                  Method
         //Mode and method are standard in example code.  Play around with other options
-        Imgproc.findContours(morphedThreshold,contoursList, new Mat(),Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_NONE);
+        Imgproc.findContours(morphedThreshold1,contoursList, new Mat(),Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_NONE);
+
+
+
+
+
 
         //copy "input" image to draw contours on for display purposes.  This just copies input to that place.
         input.copyTo(contoursOnPlainImageMat);
@@ -119,20 +137,24 @@ public class ContoursPixelLocator extends OpenCvPipeline {
             //this grabs the first contour and finds the moments of it.
 
             for (MatOfPoint contour : contoursList){
-                momentsList.add(Imgproc.moments(contour));
+                momentsList.add(Imgproc.moments(contour));  //make a moment for each contour and put it in the list
                 centers.add(new Point(
                         (int)(momentsList.get(momentsList.size()-1).m10/momentsList.get(momentsList.size()-1).m00),
                         (int)(momentsList.get(momentsList.size()-1).m01/momentsList.get(momentsList.size()-1).m00))
-                );
+                );  //calculates the centers and puts them into the centers list
+
+
             }
 
             moment1 = Imgproc.moments(contoursList.get(0));
-            moment2 = Imgproc.moments(contoursList.get(1));
+            //moment2 = Imgproc.moments(contoursList.get(1));
             //This calculations the center of mass using m10/m00, m01/m00 and stores them
             //as a point in "center"
             //the (int) is to cast the double to an integer to cut off the decimals...they were annoying
             center1 = new Point((int)(moment1.m10/moment1.m00),(int)(moment1.m01/moment1.m00));
-            center2 = new Point((int)(moment2.m10/moment2.m00),(int)(moment1.m01/moment1.m00));
+            if (contoursList.size()>1) {
+                center2 = new Point((int) (moment2.m10 / moment2.m00), (int) (moment1.m01 / moment1.m00));
+            }
             //This draws a circle at that point on the image so we can see what the image tracks.
             Imgproc.circle(contoursOnPlainImageMat,center1,3,new Scalar(0,255,0),2);
 
@@ -168,7 +190,7 @@ public class ContoursPixelLocator extends OpenCvPipeline {
         return center1;
     }
     Point getCenter2() { return center2;
-    };
+    }
 
     @Override
     public void onViewportTapped() {
