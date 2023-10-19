@@ -12,6 +12,7 @@ package org.firstinspires.ftc.teamcode.Pipelines;
         import org.opencv.imgproc.Moments;
         import org.openftc.easyopencv.OpenCvPipeline;
 
+        import java.sql.Array;
         import java.util.ArrayList;
 
 /***
@@ -59,12 +60,16 @@ public class ContoursPixelLocator extends OpenCvPipeline {
     Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(size, size));
     Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(mult*size, mult*size));
 
-    Point center = new Point(0,0); //bucket for the center of object for later
+    String centers = "";
+    Point center1 = new Point(0,0); //buckets for the center of objects for later
+    Point center2 = new Point(0, 0);
     @Override
     public Mat processFrame(Mat input) {
         // Executed every time a new frame is dispatched
         //Array to hold the contours
         ArrayList<MatOfPoint> contoursList = new ArrayList<>();
+        ArrayList<Moments> momentsList = new ArrayList<>();
+        ArrayList<Point> centers = new ArrayList<>();
 
         //convert color space to limit what you are seeing
 
@@ -103,23 +108,33 @@ public class ContoursPixelLocator extends OpenCvPipeline {
         //ArrayList<Moments> moments = new ArrayList<>();
         //ArrayList<Point> points = new ArrayList<>();
 
-        Moments moment = new Moments();
-        center = new Point();
+        Moments moment1 = new Moments();
+        Moments moment2 = new Moments();
+        center1 = new Point();
 
 
         //Sometimes images have no contours!  The list is empty, so if you try to grab an object from it
         //It yells at you.  This makes sure the list isn't empty before you access it!
         if (!contoursList.isEmpty()){
             //this grabs the first contour and finds the moments of it.
-            moment = Imgproc.moments(contoursList.get(0));
 
+            for (MatOfPoint contour : contoursList){
+                momentsList.add(Imgproc.moments(contour));
+                centers.add(new Point(
+                        (int)(momentsList.get(momentsList.size()-1).m10/momentsList.get(momentsList.size()-1).m00),
+                        (int)(momentsList.get(momentsList.size()-1).m01/momentsList.get(momentsList.size()-1).m00))
+                );
+            }
+
+            moment1 = Imgproc.moments(contoursList.get(0));
+            moment2 = Imgproc.moments(contoursList.get(1));
             //This calculations the center of mass using m10/m00, m01/m00 and stores them
             //as a point in "center"
             //the (int) is to cast the double to an integer to cut off the decimals...they were annoying
-            center = new Point((int)(moment.m10/moment.m00),(int)(moment.m01/moment.m00));
-
+            center1 = new Point((int)(moment1.m10/moment1.m00),(int)(moment1.m01/moment1.m00));
+            center2 = new Point((int)(moment2.m10/moment2.m00),(int)(moment1.m01/moment1.m00));
             //This draws a circle at that point on the image so we can see what the image tracks.
-            Imgproc.circle(contoursOnPlainImageMat,center,3,new Scalar(0,255,0),2);
+            Imgproc.circle(contoursOnPlainImageMat,center1,3,new Scalar(0,255,0),2);
 
             //This calculates and draws a bounding rectangle.
             //Bounding rectangles are nice because they have an inherent width that can be measured
@@ -132,9 +147,11 @@ public class ContoursPixelLocator extends OpenCvPipeline {
             //this draws a box around the image to show you where the computer things the object is based on "center"
             Imgproc.rectangle(contoursOnPlainImageMat,boundingRectangle.tl(),boundingRectangle.br(),new Scalar(255,0,0),2);
         }
-        telemetry.addData("location of Contour", center.x);
-        telemetry.addData("location of Contour", center.y);
-        telemetry.addData("getAnalysis result (center point): ", center);
+        //String centers = "Center 1: " + center1.x + ", " + center1.y + " Center 2: " + center2.x + ", " + center2.y;
+
+        telemetry.addData("location of Contour", center1.x);
+        telemetry.addData("location of Contour", center1.y);
+        telemetry.addData("getAnalysis result (center point): ", center1);
         telemetry.update();
 
         //this returns the image with the contours
@@ -147,9 +164,11 @@ public class ContoursPixelLocator extends OpenCvPipeline {
 
     }
 
-    Point getCenter(){
-        return center;
+    Point getCenter1(){
+        return center1;
     }
+    Point getCenter2() { return center2;
+    };
 
     @Override
     public void onViewportTapped() {
