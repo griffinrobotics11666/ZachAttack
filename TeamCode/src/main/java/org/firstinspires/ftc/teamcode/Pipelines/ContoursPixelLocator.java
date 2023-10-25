@@ -52,11 +52,15 @@ public class ContoursPixelLocator extends OpenCvPipeline {
 
     //Boolean for team (Red = T, Blue = F)
     public Boolean teamColor = true;
+    public enum ConeColor {RED, BLUE}
+    ConeColor conecolor = ConeColor.RED;
+    public enum ConePosition {LEFT,CENTER,RIGHT}
+    ConePosition coneposition = ConePosition.CENTER;
     //upper and lower Scalar values for changing the range for the mask
     public Scalar lower1 = new Scalar(130,80,85);
     public Scalar upper1 = new Scalar(255,255,255);
-    public Scalar lower2 = new Scalar(130,80,85);
-    public Scalar upper2 = new Scalar(255,255,255);
+    public Scalar lower2 = new Scalar(100,80,30);
+    public Scalar upper2 = new Scalar(140,255,255);
 
 
     //sizes to adjust for the erosion and dilation of the mask
@@ -108,8 +112,19 @@ public class ContoursPixelLocator extends OpenCvPipeline {
         //                  Mask Image        ListToStore  Optional   Mode                  Method
         //Mode and method are standard in example code.  Play around with other options
         Imgproc.findContours(morphedThreshold1,contoursList, new Mat(),Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_NONE);
-
-
+        if(!contoursList.isEmpty()) {
+            teamColor = true; //red
+            conecolor = ConeColor.RED;
+        }
+        else {
+            teamColor = false; //BLUE
+            conecolor = ConeColor.BLUE;
+        }
+        Imgproc.findContours(morphedThreshold2,contoursList, new Mat(),Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_NONE);
+        if(!contoursList.isEmpty() && !teamColor) {
+            teamColor = false;
+            conecolor = ConeColor.BLUE;
+        }
 
 
 
@@ -147,27 +162,31 @@ public class ContoursPixelLocator extends OpenCvPipeline {
             }
 
             moment1 = Imgproc.moments(contoursList.get(0));
-            //moment2 = Imgproc.moments(contoursList.get(1));
+            moment2 = Imgproc.moments(contoursList.get(1));
             //This calculations the center of mass using m10/m00, m01/m00 and stores them
             //as a point in "center"
             //the (int) is to cast the double to an integer to cut off the decimals...they were annoying
             center1 = new Point((int)(moment1.m10/moment1.m00),(int)(moment1.m01/moment1.m00));
             if (contoursList.size()>1) {
-                center2 = new Point((int) (moment2.m10 / moment2.m00), (int) (moment1.m01 / moment1.m00));
+                center2 = new Point((int) (moment2.m10 / moment2.m00), (int) (moment2.m01 / moment2.m00));
             }
+
+
             //This draws a circle at that point on the image so we can see what the image tracks.
             Imgproc.circle(contoursOnPlainImageMat,center1,3,new Scalar(0,255,0),2);
-
+            Imgproc.circle(contoursOnPlainImageMat,center2,3,new Scalar(0,255,0),2);
             //This calculates and draws a bounding rectangle.
             //Bounding rectangles are nice because they have an inherent width that can be measured
-            Rect boundingRectangle = Imgproc.boundingRect(contoursList.get(0));
-            telemetry.addData("width of box ",boundingRectangle.width);
+            Rect boundingRectangle1 = Imgproc.boundingRect(contoursList.get(0));
+            Rect boundingRectangle2 = Imgproc.boundingRect(contoursList.get(1));
+            telemetry.addData("width of box ",boundingRectangle1.width);
             //At this point, we could try to estimate the distance of the box by a ratio of apparent size to expected.
             //The bigger the box width, the smaller the distance.
             //if we know a size of the box at a specific distance, if the box width doubles, then the distance halfs.
 
             //this draws a box around the image to show you where the computer things the object is based on "center"
-            Imgproc.rectangle(contoursOnPlainImageMat,boundingRectangle.tl(),boundingRectangle.br(),new Scalar(255,0,0),2);
+            Imgproc.rectangle(contoursOnPlainImageMat,boundingRectangle1.tl(),boundingRectangle1.br(),new Scalar(255,0,0),2);
+            Imgproc.rectangle(contoursOnPlainImageMat,boundingRectangle2.tl(),boundingRectangle2.br(),new Scalar(255,0,0), 2);
         }
         //String centers = "Center 1: " + center1.x + ", " + center1.y + " Center 2: " + center2.x + ", " + center2.y;
 
@@ -186,10 +205,13 @@ public class ContoursPixelLocator extends OpenCvPipeline {
 
     }
 
-    Point getCenter1(){
+    Point getCenter1() {
         return center1;
     }
     Point getCenter2() { return center2;
+    }
+    public ConeColor getConeColor() {
+        return conecolor;
     }
 
     @Override
