@@ -125,7 +125,12 @@ public class ContoursPixelLocator extends OpenCvPipeline {
             teamColor = false;
             conecolor = ConeColor.BLUE;
         }
-
+        if (!contoursList.isEmpty()) {
+            teamColor = true;
+        }
+        else {
+            teamColor = false;
+        }
 
 
 
@@ -190,9 +195,15 @@ public class ContoursPixelLocator extends OpenCvPipeline {
         }
         //String centers = "Center 1: " + center1.x + ", " + center1.y + " Center 2: " + center2.x + ", " + center2.y;
 
-        telemetry.addData("location of Contour", center1.x);
-        telemetry.addData("location of Contour", center1.y);
+        telemetry.addData("contour x location: ", center1.x);
+        telemetry.addData("contour y location: ", center1.y);
         telemetry.addData("getAnalysis result (center point): ", center1);
+        if (teamColor == true) {
+            telemetry.addData("Team Color: ", "Red");
+        }
+        else {
+            telemetry.addData("Team Color: ", "Blue");
+        }
         telemetry.update();
 
         //this returns the image with the contours
@@ -208,12 +219,16 @@ public class ContoursPixelLocator extends OpenCvPipeline {
     Point getCenter1() {
         return center1;
     }
-    Point getCenter2() { return center2;
+    Point getCenter2() { return center2; }
+    Mat getContoursOnPlainImageMat() {
+        return contoursOnPlainImageMat;
     }
     public ConeColor getConeColor() {
         return conecolor;
     }
-
+    Boolean getTeamColor() {
+        return teamColor;
+    }
     @Override
     public void onViewportTapped() {
         // Executed when the image display is clicked by the mouse or tapped

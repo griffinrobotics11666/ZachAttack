@@ -34,7 +34,7 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
-
+import org.openftc.easyopencv.PipelineRecordingParameters;
 @TeleOp
 public class WebcamExample extends LinearOpMode
 {
@@ -187,7 +187,7 @@ public class WebcamExample extends LinearOpMode
     class SamplePipeline extends OpenCvPipeline
     {
         boolean viewportPaused;
-
+        boolean toggleRecording = false;
         /*
          * NOTE: if you wish to use additional Mat objects in your processing pipeline, it is
          * highly recommended to declare them here as instance variables and re-use them for
@@ -233,18 +233,30 @@ public class WebcamExample extends LinearOpMode
         @Override
         public void onViewportTapped()
         {
-            /*
-             * The viewport (if one was specified in the constructor) can also be dynamically "paused"
-             * and "resumed". The primary use case of this is to reduce CPU, memory, and power load
-             * when you need your vision pipeline running, but do not require a live preview on the
-             * robot controller screen. For instance, this could be useful if you wish to see the live
-             * camera preview as you are initializing your robot, but you no longer require the live
-             * preview after you have finished your initialization process; pausing the viewport does
-             * not stop running your pipeline.
-             *
-             * Here we demonstrate dynamically pausing/resuming the viewport when the user taps it
-             */
+            toggleRecording = !toggleRecording;
 
+            if(toggleRecording)
+            {
+                /*
+                 * This is all you need to do to start recording.
+                 */
+                webcam.startRecordingPipeline(
+                        new PipelineRecordingParameters.Builder()
+                                .setBitrate(4, PipelineRecordingParameters.BitrateUnits.Mbps)
+                                .setEncoder(PipelineRecordingParameters.Encoder.H264)
+                                .setOutputFormat(PipelineRecordingParameters.OutputFormat.MPEG_4)
+                                .setFrameRate(30)
+                                .setPath("/sdcard/pipeline_rec.mp4")
+                                .build());
+            }
+            else
+            {
+                /*
+                 * Note: if you don't stop recording by yourself, it will be automatically
+                 * stopped for you at the end of your OpMode
+                 */
+                webcam.stopRecordingPipeline();
+            }
             viewportPaused = !viewportPaused;
 
             if(viewportPaused)
