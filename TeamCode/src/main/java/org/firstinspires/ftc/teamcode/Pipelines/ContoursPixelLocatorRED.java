@@ -1,19 +1,18 @@
 package org.firstinspires.ftc.teamcode.Pipelines;
 
-        import org.firstinspires.ftc.robotcore.external.Telemetry;
-        import org.opencv.core.Core;
-        import org.opencv.core.Mat;
-        import org.opencv.core.MatOfPoint;
-        import org.opencv.core.Point;
-        import org.opencv.core.Rect;
-        import org.opencv.core.Scalar;
-        import org.opencv.core.Size;
-        import org.opencv.imgproc.Imgproc;
-        import org.opencv.imgproc.Moments;
-        import org.openftc.easyopencv.OpenCvPipeline;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
+import org.openftc.easyopencv.OpenCvPipeline;
 
-        import java.sql.Array;
-        import java.util.ArrayList;
+import java.util.ArrayList;
 
 /***
  * This example shows how to use an OpenCvPipeline to process an image to draw a contour around an object.  It works by doing the following steps.
@@ -34,11 +33,11 @@ package org.firstinspires.ftc.teamcode.Pipelines;
  * 12. Draws the bounding box and outputs data about where the center is.
  */
 
-public class ContoursPixelLocator extends OpenCvPipeline {
+public class ContoursPixelLocatorRED extends OpenCvPipeline {
 
     //necessary bits for making telemetry work in a pipeline!
     Telemetry telemetry;
-    public ContoursPixelLocator(Telemetry telemetry) {
+    public ContoursPixelLocatorRED(Telemetry telemetry) {
         this.telemetry = telemetry;
     }
 

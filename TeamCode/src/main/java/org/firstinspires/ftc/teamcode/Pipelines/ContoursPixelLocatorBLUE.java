@@ -1,19 +1,18 @@
 package org.firstinspires.ftc.teamcode.Pipelines;
 
-        import org.firstinspires.ftc.robotcore.external.Telemetry;
-        import org.opencv.core.Core;
-        import org.opencv.core.Mat;
-        import org.opencv.core.MatOfPoint;
-        import org.opencv.core.Point;
-        import org.opencv.core.Rect;
-        import org.opencv.core.Scalar;
-        import org.opencv.core.Size;
-        import org.opencv.imgproc.Imgproc;
-        import org.opencv.imgproc.Moments;
-        import org.openftc.easyopencv.OpenCvPipeline;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
+import org.openftc.easyopencv.OpenCvPipeline;
 
-        import java.sql.Array;
-        import java.util.ArrayList;
+import java.util.ArrayList;
 
 /***
  * This example shows how to use an OpenCvPipeline to process an image to draw a contour around an object.  It works by doing the following steps.
@@ -34,11 +33,11 @@ package org.firstinspires.ftc.teamcode.Pipelines;
  * 12. Draws the bounding box and outputs data about where the center is.
  */
 
-public class ContoursPixelLocator extends OpenCvPipeline {
+public class ContoursPixelLocatorBLUE extends OpenCvPipeline {
 
     //necessary bits for making telemetry work in a pipeline!
     Telemetry telemetry;
-    public ContoursPixelLocator(Telemetry telemetry) {
+    public ContoursPixelLocatorBLUE(Telemetry telemetry) {
         this.telemetry = telemetry;
     }
 
@@ -59,8 +58,7 @@ public class ContoursPixelLocator extends OpenCvPipeline {
     //upper and lower Scalar values for changing the range for the mask
     public Scalar lower1 = new Scalar(120,120,0);
     public Scalar upper1 = new Scalar(255,255,255);
-    public Scalar lower2 = new Scalar(100,80,30);
-    public Scalar upper2 = new Scalar(140,255,255);
+
 
 
     //sizes to adjust for the erosion and dilation of the mask
@@ -72,7 +70,6 @@ public class ContoursPixelLocator extends OpenCvPipeline {
 
     String centers = "";
     Point center1 = new Point(0,0); //buckets for the center of objects for later
-    Point center2 = new Point(0, 0);
     @Override
     public Mat processFrame(Mat input) {
         teamColor = true; //reinit teamColor default Red
@@ -88,21 +85,16 @@ public class ContoursPixelLocator extends OpenCvPipeline {
         //input.copyTo(grayMat);
         //Make a mask using a range.  Includes only the values within that range
         Core.inRange(clrConvertedMat,lower1,upper1,thresholdMat1);
-        Core.inRange(clrConvertedMat,lower2,upper2,thresholdMat2);
+
         //erode the image - reducing the noisy pixels from the mask
         //by taking the lowest value in a 3x3 box (erodeElement)
         Imgproc.erode(thresholdMat1, morphedThreshold1, erodeElement);
         Imgproc.erode(morphedThreshold1, morphedThreshold1, erodeElement);
-        //For Second Object
-        Imgproc.erode(thresholdMat2, morphedThreshold2, erodeElement);
-        Imgproc.erode(morphedThreshold2, morphedThreshold2, erodeElement);
         //expands the edges of the mask out again (needed because erosion reduces both noise and signal
         //and this boosts the signal of the edges)
         Imgproc.dilate(morphedThreshold1, morphedThreshold1, dilateElement);
         Imgproc.dilate(morphedThreshold1, morphedThreshold1, dilateElement);
-        //For Second Object
-        Imgproc.dilate(morphedThreshold2, morphedThreshold2, dilateElement);
-        Imgproc.dilate(morphedThreshold2, morphedThreshold2, dilateElement);
+
         //use function to find contours of each object and put them into contoursList.
         //find contours on the mask of all of the edges of the same value that make a closed shape.
         //These contours are points indicated on an image of their own, stored in contoursList.

@@ -35,6 +35,7 @@ import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.PipelineRecordingParameters;
 
+
 /*
  * This sample shows use of EOCV's pipeline recording API to start/stop recording
  * when the viewport is tapped. The statistics box will turn red to indicate that
