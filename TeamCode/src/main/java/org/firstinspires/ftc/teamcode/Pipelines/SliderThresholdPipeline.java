@@ -29,7 +29,7 @@ public class SliderThresholdPipeline extends OpenCvPipeline {
      * min and max values here for now, meaning
      * that all pixels will be shown.
      */
-    public Scalar lower = new Scalar(0, 0, 0);
+    public Scalar lower = new Scalar(100, 70, 0);
     public Scalar upper = new Scalar(255, 255, 255);
     //Rect rect = new Rect(3,4,5,6);
     //Rect rect2 = new Rect(new Point(3,4), new Point(10,10));
