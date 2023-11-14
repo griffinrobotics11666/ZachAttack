@@ -47,22 +47,29 @@ public class ContoursPixelLocatorRED extends OpenCvPipeline {
     Mat thresholdMat1 = new Mat(); //mask -- y pixels are part of thing or n they are not
     Mat morphedThreshold1 = new Mat();  //denoise
     Mat contoursOnPlainImageMat = new Mat(); //copy of original image to vandalize with contours
+    Mat narrowedThresholdMat = new Mat();
+
 
     //Boolean for team (Red = T, Blue = F)
     public Boolean teamColor = true;
+    public Boolean toggleReturnedMat = true;
     public enum ConePosition {LEFT,CENTER,RIGHT}
     ConePosition coneposition = ConePosition.CENTER;
+    public Point submatBound1 = new Point(1919,414);
+    public Point submatBound2 = new Point(0,660);
+
     //upper and lower Scalar values for changing the range for the mask
-    public Scalar lower1 = new Scalar(0,90,106);
-    public Scalar upper1 = new Scalar(11,255,255);
-    public final int LEFT_BOUND = 430;
-    public final int RIGHT_BOUND = 855;
+    public Scalar lower1 = new Scalar(100,180,0);
+    public Scalar upper1 = new Scalar(255,255,255);
+    public final int LEFT_BOUND = 640;
+    public final int RIGHT_BOUND = 1280;
 
     //for list size sorting:
     public int currentEsize;
     public int biggestEsize;
     public int currentIsize;
     public int biggestIsize;
+
 
     //sizes to adjust for the erosion and dilation of the mask
     public int size = 3;
@@ -100,10 +107,12 @@ public class ContoursPixelLocatorRED extends OpenCvPipeline {
         //These contours are points indicated on an image of their own, stored in contoursList.
         //Each object that is detected is stored as a separate object in contoursList.
         //We want to reduce this down to 1 object.
+        narrowedThresholdMat = morphedThreshold1.submat(new Rect(submatBound1, submatBound2));
 
         //                  Mask Image        ListToStore  Optional   Mode                  Method
         //Mode and method are standard in example code.  Play around with other options
-        Imgproc.findContours(morphedThreshold1,contoursList, new Mat(),Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_NONE);
+        //Imgproc.findContours(morphedThreshold1,contoursList, new Mat(),Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_NONE);
+        Imgproc.findContours(narrowedThresholdMat, contoursList, new Mat(), Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_NONE);
 
         //copy "input" image to draw contours on for display purposes.  This just copies input to that place.
         input.copyTo(contoursOnPlainImageMat);
@@ -162,7 +171,7 @@ public class ContoursPixelLocatorRED extends OpenCvPipeline {
         }
         Imgproc.circle(contoursOnPlainImageMat,centers.get(biggestIsize),3,new Scalar(0,255,0),2);
         Imgproc.boundingRect(contoursList.get(biggestIsize));
-
+        Imgproc.rectangle(contoursOnPlainImageMat,submatBound1, submatBound2, new Scalar(255,0,0), 2);
         telemetry.addData("width of box",rectList.get(biggestIsize).width);
         //At this point, we could try to estimate the distance of the box by a ratio of apparent size to expected.
         //The bigger the box width, the smaller the distance.
@@ -180,7 +189,12 @@ public class ContoursPixelLocatorRED extends OpenCvPipeline {
         telemetry.update();
 
         //this returns the image with the contours
-        return contoursOnPlainImageMat; // Return the image that will be displayed in the viewport
+        if (toggleReturnedMat) {
+            return contoursOnPlainImageMat; // Return the image that will be displayed in the viewport
+        }
+        else {
+            return contoursOnPlainImageMat.submat(new Rect(submatBound1, submatBound2));
+        }
 
         //uncomment these to see what they look like
         //return input;

@@ -61,8 +61,8 @@ public class ContoursPixelLocatorBLUE extends OpenCvPipeline {
     //upper and lower Scalar values for changing the range for the mask
     public Scalar lower1 = new Scalar(100,180,0);
     public Scalar upper1 = new Scalar(255,255,255);
-    public final int LEFT_BOUND = 430;
-    public final int RIGHT_BOUND = 855;
+    public final int LEFT_BOUND = 640;
+    public final int RIGHT_BOUND = 1280;
 
     //for list size sorting:
     public int currentEsize;
@@ -120,7 +120,7 @@ public class ContoursPixelLocatorBLUE extends OpenCvPipeline {
         //draw contours using the contours List
         //                  Image to draw on        contours2draw           ?       Color           Thickness
         Imgproc.drawContours(contoursOnPlainImageMat,contoursList,-1,new Scalar(0,0,255),2);
-
+        
         //counter for the number of closed contours
         telemetry.addData("Number of objects", contoursList.size());
 
